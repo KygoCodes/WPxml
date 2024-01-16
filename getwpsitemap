@@ -34,30 +34,38 @@ def extract_image_urls(page_url):
     image_urls = [img['src'] for img in images if 'src' in img.attrs]
     return image_urls
 
-def write_to_file(filename, data):
+def write_to_xml(filename, data):
     """
-    Writes provided data to a file.
+    Writes provided data to an XML file.
 
     Args:
-    filename (str): The name of the file to write to.
-    data (str): The data to write to the file.
+    filename (str): The name of the XML file to write to.
+    data (list): The data to write to the XML file.
     """
-    with open(filename, 'w') as file:
-        file.write(data)
+    root = ET.Element("root")
+    for page, image_urls in data.items():
+        page_element = ET.SubElement(root, "page")
+        page_element.text = page
+        for url in image_urls:
+            url_element = ET.SubElement(page_element, "image_url")
+            url_element.text = url
+
+    tree = ET.ElementTree(root)
+    tree.write(filename, xml_declaration=True, encoding='utf-8')
 
 def main():
     """
     Main function to execute the script.
     """
-    sitemap_url = 'https://www.supremepawsupply.com/product-sitemap1.xml'  # Replace with your sitemap URL
+    sitemap_url = 'INSERT PRODUCT SITE MAP HERE'  # Replace with your sitemap URL
     product_pages = get_product_pages(sitemap_url)
 
-    output_data = ""
+    output_data = {}
     for page in product_pages:
         image_urls = extract_image_urls(page)
-        output_data += f"Images from {page}: {', '.join(image_urls)}\n"
+        output_data[page] = image_urls
 
-    write_to_file('output.txt', output_data)
+    write_to_xml('output.xml', output_data)
 
 if __name__ == "__main__":
     main()
