@@ -1,0 +1,63 @@
+import requests
+from bs4 import BeautifulSoup
+import xml.etree.ElementTree as ET
+
+def get_product_pages(sitemap_url):
+    """
+    Fetches and parses the sitemap to extract URLs of product pages.
+
+    Args:
+    sitemap_url (str): The URL of the sitemap.
+
+    Returns:
+    list: A list of URLs found in the sitemap.
+    """
+    response = requests.get(sitemap_url)
+    sitemap_xml = response.text
+    root = ET.fromstring(sitemap_xml)
+    urls = [url[0].text for url in root]
+    return urls
+
+def extract_image_urls(page_url):
+    """
+    Scrapes a product page for image URLs.
+
+    Args:
+    page_url (str): The URL of the product page.
+
+    Returns:
+    list: A list of image URLs found on the page.
+    """
+    response = requests.get(page_url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    images = soup.find_all('img')
+    image_urls = [img['src'] for img in images if 'src' in img.attrs]
+    return image_urls
+
+def write_to_file(filename, data):
+    """
+    Writes provided data to a file.
+
+    Args:
+    filename (str): The name of the file to write to.
+    data (str): The data to write to the file.
+    """
+    with open(filename, 'w') as file:
+        file.write(data)
+
+def main():
+    """
+    Main function to execute the script.
+    """
+    sitemap_url = 'https://www.supremepawsupply.com/product-sitemap1.xml'  # Replace with your sitemap URL
+    product_pages = get_product_pages(sitemap_url)
+
+    output_data = ""
+    for page in product_pages:
+        image_urls = extract_image_urls(page)
+        output_data += f"Images from {page}: {', '.join(image_urls)}\n"
+
+    write_to_file('output.txt', output_data)
+
+if __name__ == "__main__":
+    main()
